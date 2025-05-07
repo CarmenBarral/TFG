@@ -72,3 +72,13 @@ for i in range(548):
 plt.imshow(M[i])
 plt.show()
 ```
+
+#### GenerarDatasets
+
+#### ExtraerCaracterísticas
+
+#### FeatureEngineering
+
+#### AlgoritmosTípicos
+
+#### GenerarGráficas
