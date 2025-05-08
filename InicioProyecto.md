@@ -181,6 +181,69 @@ with open('DatasetIDNOPeso.csv', 'w', encoding='UTF8', newline='') as f:
 
 #### ExtraerCaracterísticas
 
+Se extraen con opencv las carácterísticas de cada imagen
+
+```console
+import numpy as np
+import cv2 as cv
+import matplotlib.pyplot as plt
+```
+
+```console
+from coco import COCO
+import numpy as np
+import matplotlib.pyplot as plt
+ann_file='/content/drive/MyDrive/TFG/Datasets/Json_Files/traincoco.json'
+coco=COCO(ann_file)
+```
+```console
+img_ids=coco.getImgIds()
+img_info=coco.loadImgs(img_ids)
+```
+```console
+nombrefiles=[]
+for i in range(len(img_info)):
+  nombrefiles.append(img_info[i]['file_name'])
+```
+```console
+ListaNombres=[]
+for i in range(len(nombrefiles)):
+  ListaNombres.append('/content/drive/MyDrive/TFG/Datasets/Pictures/train/'+nombrefiles[i])
+```
+```console
+Caracteristicas={}
+```
+```console
+for i in range(len(ListaNombres)):
+  img = cv.imread(ListaNombres[i], cv.IMREAD_GRAYSCALE) # Consider changing ListImages[0] to ListaNombres[i] to iterate through all images
+  assert img is not None, "file could not be read, check with os.path.exists()"
+  ret,thresh = cv.threshold(img,127,255,0)
+  contours,hierarchy = cv.findContours(thresh, 1, 2)
+
+  cnt = contours[0]
+  M = cv.moments(cnt)
+  if M['m00'] == 0:
+    cx=0
+    cy=0
+  else:
+    cx = int(M['m10']/M['m00'])
+    cy = int(M['m01']/M['m00'])
+  area = cv.contourArea(cnt)
+  perimeter = cv.arcLength(cnt,False)
+
+  # Create a nested dictionary for the current image if it doesn't exist
+  if nombrefiles[i] not in Caracteristicas:
+    Caracteristicas[nombrefiles[i]] = {}
+
+  Caracteristicas[nombrefiles[i]]['cx'] = cx
+  Caracteristicas[nombrefiles[i]]['cy'] = cy
+  Caracteristicas[nombrefiles[i]]['area'] = area
+  Caracteristicas[nombrefiles[i]]['perimeter'] = perimeter
+```
+```console
+print(Caracteristicas)
+```
+
 #### FeatureEngineering
 
 #### AlgoritmosTípicos
