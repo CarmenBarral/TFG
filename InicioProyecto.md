@@ -52,9 +52,9 @@ print(an3)
 ```console
 an4s= an3s
 for an4 in an4s:
-seg=[]
-seg.append(an4['segmentation'])
-an4['segmentation']=seg
+ seg=[]
+ seg.append(an4['segmentation'])
+ an4['segmentation']=seg
 print(an4)
 ```
 ```console
@@ -77,103 +77,18 @@ plt.show()
 
 Se generan datasets en csv con las características del centroide, area y perímetro de cada imagen. Se generan dos datasets con y sin ids. FALTA AÑADIR LOS PESOS
 
+```console
 import numpy as np
 import cv2 as cv
 import matplotlib.pyplot as plt
-
+```
+```console
 from coco import COCO
 import numpy as np
 import matplotlib.pyplot as plt
 ann_file='/content/drive/MyDrive/TFG/Datasets/Json_Files/traincoco.json'
 coco=COCO(ann_file)
-
-img_ids=coco.getImgIds()
-
-img_info=coco.loadImgs(img_ids)
-
-nombrefiles=[]
-for i in range(len(img_info)):
- nombrefiles.append(img_info[i]['file_name'])
-
-ListaNombres=[]
-for i in range(len(nombrefiles)):
- ListaNombres.append('/content/drive/MyDrive/TFG/Datasets/Pictures/train/'+nombrefiles[i])
-
-Dataset={}
-
-import csv
-
-for i in range(len(ListaNombres)):
- img = cv.imread(ListaNombres[i], cv.IMREAD_GRAYSCALE) # Consider changing ListImages[0] to ListaNombres[i] to iterate through all images
- assert img is not None, "file could not be read, check with os.path.exists()"
- ret,thresh = cv.threshold(img,127,255,0)
- contours,hierarchy = cv.findContours(thresh, 1, 2)
-
-
- cnt = contours[0]
- M = cv.moments(cnt)
- if M['m00'] == 0:
-   cx=0
-   cy=0
- else:
-   cx = int(M['m10']/M['m00'])
-   cy = int(M['m01']/M['m00'])
- area = cv.contourArea(cnt)
- perimeter = cv.arcLength(cnt,False)
-
-
- # Create a nested dictionary for the current image if it doesn't exist
- if nombrefiles[i] not in Dataset:
-   Dataset[nombrefiles[i]] = {}
-
-
- Dataset[nombrefiles[i]]['cx'] = cx
- Dataset[nombrefiles[i]]['cy'] = cy
- Dataset[nombrefiles[i]]['area'] = area
- Dataset[nombrefiles[i]]['perimeter'] = perimeter
-
-print(Dataset)
-
-columnasNOIDNOPeso=['cx', 'cy', 'area', 'perimeter']
-columnasIDNOPeso=['id', 'cx', 'cy', 'area', 'perimeter']
-
-ids=[]
-for id in nombrefiles:
- ids.append(id[8:12])
-
-coursesNOIDNOPeso=[]
-for i in range(len(Dataset)):
- dic={}
- dic['cx']=Dataset[nombrefiles[i]]['cx']
- dic['cy']=Dataset[nombrefiles[i]]['cy']
- dic['area']=Dataset[nombrefiles[i]]['area']
- dic['perimeter']=Dataset[nombrefiles[i]]['perimeter']
- coursesNOIDNOPeso.append(dic)
-
-coursesIDNOPeso=[]
-for i  in range(len(Dataset)):
- dic={}
- dic['id']=ids[i]
- dic['cx']=Dataset[nombrefiles[i]]['cx']
- dic['cy']=Dataset[nombrefiles[i]]['cy']
- dic['area']=Dataset[nombrefiles[i]]['area']
- dic['perimeter']=Dataset[nombrefiles[i]]['perimeter']
- coursesIDNOPeso.append(dic)
-
-
-with open('DatasetNOIDNOPeso.csv', 'w', encoding='UTF8', newline='') as f:
-   writer = csv.DictWriter(f, fieldnames=columnasNOIDNOPeso)
-   writer.writeheader()
-   for courseNOIDNOPeso in coursesNOIDNOPeso:
-       writer.writerow(courseNOIDNOPeso)
-
-
-with open('DatasetIDNOPeso.csv', 'w', encoding='UTF8', newline='') as f:
-   writer = csv.DictWriter(f, fieldnames=columnasIDNOPeso)
-   writer.writeheader()
-   for courseIDNOPeso in coursesIDNOPeso:
-       writer.writerow(courseIDNOPeso)
-
+```
 
 
 #### ExtraerCaracterísticas
