@@ -245,6 +245,123 @@ print(Caracteristicas)
 ```
 
 #### FeatureEngineering
+Se vuelven a generar dos datasets en csv con y sin id combinando las caracaterísticas entre si: cx*cy, area/perimetro, cx*area, cy*area
+
+
+```console
+import numpy as np
+import cv2 as cv
+import csv
+import matplotlib.pyplot as plt
+```
+```console
+from coco import COCO
+import numpy as np
+import matplotlib.pyplot as plt
+ann_file='/content/drive/MyDrive/TFG/Datasets/Json_Files/traincoco.json'
+coco=COCO(ann_file)
+```
+
+```console
+img_ids=coco.getImgIds()
+img_info=coco.loadImgs(img_ids)
+DatasetFE={}
+```
+```console
+nombrefiles=[]
+for i in range(len(img_info)):
+  nombrefiles.append(img_info[i]['file_name'])
+```
+```console
+ListaNombres=[]
+for i in range(len(nombrefiles)):
+  ListaNombres.append('/content/drive/MyDrive/TFG/Datasets/Pictures/train/'+nombrefiles[i])
+```
+```console
+for i in range(len(ListaNombres)):
+  img = cv.imread(ListaNombres[i], cv.IMREAD_GRAYSCALE) # Consider changing ListImages[0] to ListaNombres[i] to iterate through all images
+  assert img is not None, "file could not be read, check with os.path.exists()"
+  ret,thresh = cv.threshold(img,127,255,0)
+  contours,hierarchy = cv.findContours(thresh, 1, 2)
+
+  cnt = contours[0]
+  M = cv.moments(cnt)
+  if M['m00'] == 0:
+    cx=0
+    cy=0
+  else:
+    cx = int(M['m10']/M['m00'])
+    cy = int(M['m01']/M['m00'])
+  area = cv.contourArea(cnt)
+  perimeter = cv.arcLength(cnt,False)
+
+  # Create a nested dictionary for the current image if it doesn't exist
+  if nombrefiles[i] not in DatasetFE:
+    DatasetFE[nombrefiles[i]] = {}
+
+  DatasetFE[nombrefiles[i]]['cx'] = cx
+  DatasetFE[nombrefiles[i]]['cy'] = cy
+  DatasetFE[nombrefiles[i]]['area'] = area
+  DatasetFE[nombrefiles[i]]['perimeter'] = perimeter
+```
+```console
+columnasFENOIDNOPeso=['cx', 'cy', 'area', 'perimeter','cxcy','area/perimetro','cxarea','cyarea']
+columnasFEIDNOPeso=['id', 'cx', 'cy', 'area', 'perimeter','cxcy','area/perimetro','cxarea','cyarea']
+```
+```console
+ids=[]
+for id in nombrefiles:
+  ids.append(id[8:12])
+```
+```console
+coursesFENOIDNOPeso=[]
+for i in range(len(DatasetFE)):
+  dic={}
+  dic['cx']=DatasetFE[nombrefiles[i]]['cx']
+  dic['cy']=DatasetFE[nombrefiles[i]]['cy']
+  dic['area']=DatasetFE[nombrefiles[i]]['area']
+  dic['perimeter']=DatasetFE[nombrefiles[i]]['perimeter']
+  dic['cxcy'] = DatasetFE[nombrefiles[i]]['cx']*DatasetFE[nombrefiles[i]]['cy']
+  if DatasetFE[nombrefiles[i]]['perimeter'] == 0:
+    dic['area/perimetro'] = 0
+  else:
+    dic['area/perimetro'] = DatasetFE[nombrefiles[i]]['area']/DatasetFE[nombrefiles[i]]['perimeter']
+  dic['cxarea'] = DatasetFE[nombrefiles[i]]['cx']*DatasetFE[nombrefiles[i]]['area']
+  dic['cyarea'] = DatasetFE[nombrefiles[i]]['cy']*DatasetFE[nombrefiles[i]]['area']
+  coursesFENOIDNOPeso.append(dic)
+```
+```console
+coursesFEIDNOPeso=[]
+for i  in range(len(DatasetFE)):
+  dic={}
+  dic['id']=ids[i]
+  dic['cx']=DatasetFE[nombrefiles[i]]['cx']
+  dic['cy']=DatasetFE[nombrefiles[i]]['cy']
+  dic['area']=DatasetFE[nombrefiles[i]]['area']
+  dic['perimeter']=DatasetFE[nombrefiles[i]]['perimeter']
+  dic['cxcy'] = DatasetFE[nombrefiles[i]]['cx']*DatasetFE[nombrefiles[i]]['cy']
+  if DatasetFE[nombrefiles[i]]['perimeter'] == 0:
+    dic['area/perimetro'] = 0
+  else:
+    dic['area/perimetro'] = DatasetFE[nombrefiles[i]]['area']/DatasetFE[nombrefiles[i]]['perimeter']
+  dic['cxarea'] = DatasetFE[nombrefiles[i]]['cx']*DatasetFE[nombrefiles[i]]['area']
+  dic['cyarea'] = DatasetFE[nombrefiles[i]]['cy']*DatasetFE[nombrefiles[i]]['area']
+  coursesFEIDNOPeso.append(dic)
+```
+```console
+with open('DatasetFENOIDNOPeso.csv', 'w', encoding='UTF8', newline='') as f:
+    writer = csv.DictWriter(f, fieldnames=columnasFENOIDNOPeso)
+    writer.writeheader()
+    for courseFENOIDNOPeso in coursesFENOIDNOPeso:
+        writer.writerow(courseFENOIDNOPeso)
+```
+```console
+with open('DatasetFEIDNOPeso.csv', 'w', encoding='UTF8', newline='') as f:
+    writer = csv.DictWriter(f, fieldnames=columnasFEIDNOPeso)
+    writer.writeheader()
+    for courseFEIDNOPeso in coursesFEIDNOPeso:
+        writer.writerow(courseFEIDNOPeso)
+```
 
 #### AlgoritmosTípicos
 
