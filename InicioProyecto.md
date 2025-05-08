@@ -80,6 +80,7 @@ Se generan datasets en csv con las características del centroide, area y perím
 ```console
 import numpy as np
 import cv2 as cv
+import csv
 import matplotlib.pyplot as plt
 ```
 ```console
@@ -88,6 +89,93 @@ import numpy as np
 import matplotlib.pyplot as plt
 ann_file='/content/drive/MyDrive/TFG/Datasets/Json_Files/traincoco.json'
 coco=COCO(ann_file)
+```
+
+```console
+img_ids=coco.getImgIds()
+img_info=coco.loadImgs(img_ids)
+Dataset={}
+```
+```console
+nombrefiles=[]
+for i in range(len(img_info)):
+  nombrefiles.append(img_info[i]['file_name'])
+```
+```console
+ListaNombres=[]
+for i in range(len(nombrefiles)):
+  ListaNombres.append('/content/drive/MyDrive/TFG/Datasets/Pictures/train/'+nombrefiles[i])
+```
+```console
+for i in range(len(ListaNombres)):
+  img = cv.imread(ListaNombres[i], cv.IMREAD_GRAYSCALE) # Consider changing ListImages[0] to ListaNombres[i] to iterate through all images
+  assert img is not None, "file could not be read, check with os.path.exists()"
+  ret,thresh = cv.threshold(img,127,255,0)
+  contours,hierarchy = cv.findContours(thresh, 1, 2)
+
+  cnt = contours[0]
+  M = cv.moments(cnt)
+  if M['m00'] == 0:
+    cx=0
+    cy=0
+  else:
+    cx = int(M['m10']/M['m00'])
+    cy = int(M['m01']/M['m00'])
+  area = cv.contourArea(cnt)
+  perimeter = cv.arcLength(cnt,False)
+
+  # Create a nested dictionary for the current image if it doesn't exist
+  if nombrefiles[i] not in Dataset:
+    Dataset[nombrefiles[i]] = {}
+
+  Dataset[nombrefiles[i]]['cx'] = cx
+  Dataset[nombrefiles[i]]['cy'] = cy
+  Dataset[nombrefiles[i]]['area'] = area
+  Dataset[nombrefiles[i]]['perimeter'] = perimeter
+```
+```console
+columnasNOIDNOPeso=['cx', 'cy', 'area', 'perimeter']
+columnasIDNOPeso=['id', 'cx', 'cy', 'area', 'perimeter']
+```
+```console
+ids=[]
+for id in nombrefiles:
+  ids.append(id[8:12])
+```
+```console
+coursesNOIDNOPeso=[]
+for i in range(len(Dataset)):
+  dic={}
+  dic['cx']=Dataset[nombrefiles[i]]['cx']
+  dic['cy']=Dataset[nombrefiles[i]]['cy']
+  dic['area']=Dataset[nombrefiles[i]]['area']
+  dic['perimeter']=Dataset[nombrefiles[i]]['perimeter']
+  coursesNOIDNOPeso.append(dic)
+```
+```console
+coursesIDNOPeso=[]
+for i  in range(len(Dataset)):
+  dic={}
+  dic['id']=ids[i]
+  dic['cx']=Dataset[nombrefiles[i]]['cx']
+  dic['cy']=Dataset[nombrefiles[i]]['cy']
+  dic['area']=Dataset[nombrefiles[i]]['area']
+  dic['perimeter']=Dataset[nombrefiles[i]]['perimeter']
+  coursesIDNOPeso.append(dic)
+```
+```console
+with open('DatasetNOIDNOPeso.csv', 'w', encoding='UTF8', newline='') as f:
+    writer = csv.DictWriter(f, fieldnames=columnasNOIDNOPeso)
+    writer.writeheader()
+    for courseNOIDNOPeso in coursesNOIDNOPeso:
+        writer.writerow(courseNOIDNOPeso)
+```
+```console
+with open('DatasetIDNOPeso.csv', 'w', encoding='UTF8', newline='') as f:
+    writer = csv.DictWriter(f, fieldnames=columnasIDNOPeso)
+    writer.writeheader()
+    for courseIDNOPeso in coursesIDNOPeso:
+        writer.writerow(courseIDNOPeso)
 ```
 
 
